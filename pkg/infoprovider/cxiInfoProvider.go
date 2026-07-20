@@ -62,8 +62,13 @@ func (ip *cxiInfoProvider) GetDeviceSpecs() []*pluginapi.DeviceSpec {
 
 	// Confirm the corresponding /dev char device actually exists before mounting it.
 	devPath := filepath.Join(CxiDevDir, filepath.Base(cxiDev))
-	if _, err := os.Stat(devPath); err != nil {
+	info, err := os.Stat(devPath)
+	if err != nil {
 		glog.Errorf("GetDeviceSpecs(): cxi device file %s does not exist for device: %s, %s", devPath, ip.pciAddr, err.Error())
+		return devSpecs
+	}
+	if info.Mode()&os.ModeCharDevice == 0 {
+		glog.Errorf("GetDeviceSpecs(): cxi device file %s for device %s is not a character device", devPath, ip.pciAddr)
 		return devSpecs
 	}
 

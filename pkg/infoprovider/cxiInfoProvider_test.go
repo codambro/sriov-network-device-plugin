@@ -51,8 +51,8 @@ var _ = Describe("cxiInfoProvider", func() {
 		),
 		Entry("cxi device present returns its char device mount",
 			&utils.FakeFilesystem{
-				Dirs:  []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4"},
-				Files: map[string][]byte{"dev/cxi4": nil},
+				Dirs:     []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev"},
+				Symlinks: map[string]string{"dev/cxi4": "/dev/null"},
 			},
 			"0000:21:00.1",
 			[]*pluginapi.DeviceSpec{
@@ -62,6 +62,21 @@ var _ = Describe("cxiInfoProvider", func() {
 		Entry("cxi directory present but char device missing returns empty specs",
 			&utils.FakeFilesystem{
 				Dirs: []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4"},
+			},
+			"0000:21:00.1",
+			[]*pluginapi.DeviceSpec{},
+		),
+		Entry("cxi path is a regular file returns empty specs",
+			&utils.FakeFilesystem{
+				Dirs:  []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev"},
+				Files: map[string][]byte{"dev/cxi4": nil},
+			},
+			"0000:21:00.1",
+			[]*pluginapi.DeviceSpec{},
+		),
+		Entry("cxi path is a directory returns empty specs",
+			&utils.FakeFilesystem{
+				Dirs: []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev/cxi4"},
 			},
 			"0000:21:00.1",
 			[]*pluginapi.DeviceSpec{},
