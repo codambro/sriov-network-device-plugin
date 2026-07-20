@@ -143,7 +143,7 @@ func (np *netDeviceProvider) GetFilteredDevices(devices []types.HostDevice,
 	if nf.IsCxi {
 		cxiDevices := make([]types.HostDevice, 0)
 		for _, dev := range filteredDevice {
-			if utils.HasCxiDevice(dev.(types.PciNetDevice).GetPciAddr()) {
+			if utils.HasCxiDevice(dev.GetDeviceID()) {
 				cxiDevices = append(cxiDevices, dev)
 			}
 		}

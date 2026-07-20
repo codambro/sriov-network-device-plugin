@@ -395,12 +395,12 @@ func GetCxiDeviceFile(dev string) (devFile string, err error) {
 
 	_, err = os.Lstat(cxiDir)
 	if err != nil {
-		return "", fmt.Errorf("GetCxiDeviceFile(): could not get directory information for device: %s Err: %v", cxiDir, err)
+		return "", fmt.Errorf("GetCxiDeviceFile(): could not get directory information for device: %s Err: %w", cxiDir, err)
 	}
 
 	files, err := os.ReadDir(cxiDir)
 	if err != nil {
-		return "", fmt.Errorf("GetCxiDeviceFile(): failed to read cxi directory %s: %v", cxiDir, err)
+		return "", fmt.Errorf("GetCxiDeviceFile(): failed to read cxi directory %s: %w", cxiDir, err)
 	}
 
 	if len(files) == 0 {

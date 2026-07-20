@@ -15,12 +15,19 @@
 package infoprovider
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/golang/glog"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/types"
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/utils"
 )
+
+// CxiDevDir is the base directory for CXI char devices.
+// It is a variable to allow overriding the path in unit tests.
+var CxiDevDir = "/dev"
 
 /*
 cxiInfoProvider provides the Cassini (CXI) char device information.
@@ -50,6 +57,13 @@ func (ip *cxiInfoProvider) GetDeviceSpecs() []*pluginapi.DeviceSpec {
 	cxiDev, err := utils.GetCxiDeviceFile(ip.pciAddr)
 	if err != nil {
 		glog.Errorf("GetDeviceSpecs(): error getting cxi device file for device: %s, %s", ip.pciAddr, err.Error())
+		return devSpecs
+	}
+
+	// Confirm the corresponding /dev char device actually exists before mounting it.
+	devPath := filepath.Join(CxiDevDir, filepath.Base(cxiDev))
+	if _, err := os.Stat(devPath); err != nil {
+		glog.Errorf("GetDeviceSpecs(): cxi device file %s does not exist for device: %s, %s", devPath, ip.pciAddr, err.Error())
 		return devSpecs
 	}
 
