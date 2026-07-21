@@ -15,19 +15,12 @@
 package infoprovider
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/golang/glog"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
 
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/types"
 	"github.com/k8snetworkplumbingwg/sriov-network-device-plugin/pkg/utils"
 )
-
-// CxiDevDir is the base directory for CXI char devices.
-// It is a variable to allow overriding the path in unit tests.
-var CxiDevDir = "/dev"
 
 /*
 cxiInfoProvider provides the Cassini (CXI) char device information.
@@ -60,17 +53,9 @@ func (ip *cxiInfoProvider) GetDeviceSpecs() []*pluginapi.DeviceSpec {
 		return devSpecs
 	}
 
-	// Confirm the corresponding /dev char device actually exists before mounting it.
-	devPath := filepath.Join(CxiDevDir, filepath.Base(cxiDev))
-	info, err := os.Stat(devPath)
-	if err != nil {
-		glog.Errorf("GetDeviceSpecs(): cxi device file %s does not exist for device: %s, %s", devPath, ip.pciAddr, err.Error())
-		return devSpecs
-	}
-	if info.Mode()&os.ModeCharDevice == 0 {
-		glog.Errorf("GetDeviceSpecs(): cxi device file %s for device %s is not a character device", devPath, ip.pciAddr)
-		return devSpecs
-	}
+	// Note: the existence of the /dev char device is intentionally not verified here.
+	// HostPath is resolved by kubelet on the host, whereas this code runs inside the
+	// device-plugin container which does not mount the host's /dev.
 
 	devSpecs = append(devSpecs, &pluginapi.DeviceSpec{
 		HostPath:      cxiDev,

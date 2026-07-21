@@ -15,8 +15,6 @@
 package infoprovider_test
 
 import (
-	"path/filepath"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pluginapi "k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1"
@@ -36,7 +34,6 @@ var _ = Describe("cxiInfoProvider", func() {
 	DescribeTable("GetDeviceSpecs",
 		func(fs *utils.FakeFilesystem, pciAddr string, expected []*pluginapi.DeviceSpec) {
 			defer fs.Use()()
-			infoprovider.CxiDevDir = filepath.Join(fs.RootDir, "dev")
 
 			dip := infoprovider.NewCxiInfoProvider(pciAddr)
 			specs := dip.GetDeviceSpecs()
@@ -51,35 +48,12 @@ var _ = Describe("cxiInfoProvider", func() {
 		),
 		Entry("cxi device present returns its char device mount",
 			&utils.FakeFilesystem{
-				Dirs:     []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev"},
-				Symlinks: map[string]string{"dev/cxi4": "/dev/null"},
+				Dirs: []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4"},
 			},
 			"0000:21:00.1",
 			[]*pluginapi.DeviceSpec{
 				{HostPath: "/dev/cxi4", ContainerPath: "/dev/cxi4", Permissions: "rw"},
 			},
-		),
-		Entry("cxi directory present but char device missing returns empty specs",
-			&utils.FakeFilesystem{
-				Dirs: []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4"},
-			},
-			"0000:21:00.1",
-			[]*pluginapi.DeviceSpec{},
-		),
-		Entry("cxi path is a regular file returns empty specs",
-			&utils.FakeFilesystem{
-				Dirs:  []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev"},
-				Files: map[string][]byte{"dev/cxi4": nil},
-			},
-			"0000:21:00.1",
-			[]*pluginapi.DeviceSpec{},
-		),
-		Entry("cxi path is a directory returns empty specs",
-			&utils.FakeFilesystem{
-				Dirs: []string{"sys/bus/pci/devices/0000:21:00.1/cxi/cxi4", "dev/cxi4"},
-			},
-			"0000:21:00.1",
-			[]*pluginapi.DeviceSpec{},
 		),
 	)
 	Describe("getting mounts", func() {
